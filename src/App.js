@@ -3,7 +3,15 @@ import "./App.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState([
+    { id: 87687, label: "Practice React" },
+    { id: 874587, label: "Practice Django" },
+    { id: 876876567, label: "Practice SQL" },
+  ]);
+  const [launch, setLaunch] = useState([
+    { id: 585475, label: "Publich website" },
+    { id: 874587, label: "Marketing" },
+  ]);
   const [todo, setTodo] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [id, setId] = useState("");
@@ -39,6 +47,29 @@ function App() {
     setTodo("");
   };
 
+  const onDragEnd = (result) => {
+    const { destination, source } = result;
+
+    if (destination.droppableId === source.droppableId) {
+      const items = Array.from(todos);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
+
+      setTodos(items);
+    } else if (source.droppableId === "todos") {
+      const originArray = source.droppableId;
+      const destinationArray = destination.droppableId;
+
+      const sourceColumn = Array.from(todos);
+      const [reorderedSourceColumn] = sourceColumn.splice(source.index, 1);
+      setTodos(sourceColumn);
+
+      const launchColumn = Array.from(launch);
+      launchColumn.splice(destination.index, 0, reorderedSourceColumn);
+      setLaunch(launchColumn);
+    }
+  };
+
   return (
     <div className="container">
       <h1>Todo App</h1>
@@ -63,9 +94,9 @@ function App() {
         </div>
       </div>
       <div className="row mt-4">
-        <div className="col-4">
-          <DragDropContext>
-            <Droppable droppableId="todos" type="TODOS">
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="col-4 border">
+            <Droppable droppableId="todos">
               {(provided) => (
                 <ul
                   style={{ listStyleType: "none" }}
@@ -110,8 +141,56 @@ function App() {
                 </ul>
               )}
             </Droppable>
-          </DragDropContext>
-        </div>
+          </div>
+          {/* second column */}
+          <div className="col-4 border">
+            <Droppable droppableId="launch">
+              {(provided) => (
+                <ul
+                  style={{ listStyleType: "none" }}
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  {launch.map((item, index) => (
+                    <Draggable
+                      key={item.id}
+                      draggableId={item.label}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div style={{ display: "flex" }}>
+                          <li
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {item.label}
+                          </li>
+                          <button
+                            className="btn btn-light"
+                            onClick={() => deleteTodo(todo.id)}
+                            style={{ marginLeft: "auto" }}
+                            type="button"
+                          >
+                            &times;
+                          </button>
+                          <button
+                            className="btn btn-light"
+                            onClick={() => modify(todo)}
+                            type="button"
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </ul>
+              )}
+            </Droppable>
+          </div>
+        </DragDropContext>
       </div>
     </div>
   );
