@@ -4,17 +4,18 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 function App() {
   const [todos, setTodos] = useState([
-    { id: 87687, label: "Practice React" },
-    { id: 874587, label: "Practice Django" },
-    { id: 876876567, label: "Practice SQL" },
+    { id: 0, label: "Practice React" },
+    { id: 1, label: "Practice Django" },
+    { id: 2, label: "Practice SQL" },
   ]);
   const [launch, setLaunch] = useState([
-    { id: 585475, label: "Publich website" },
-    { id: 874587, label: "Marketing" },
+    { id: 3, label: "Publich website" },
+    { id: 4, label: "Marketing" },
   ]);
   const [todo, setTodo] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [id, setId] = useState("");
+  const [isTodo, setIsTodo] = useState(null);
 
   const addTodo = (e) => {
     e.preventDefault();
@@ -27,22 +28,42 @@ function App() {
   };
 
   const deleteTodo = (position) => {
-    const newTodos = todos.filter((todo) => todo.id !== position);
-    setTodos(newTodos);
+    const isTodo = todos.filter((todo) => todo.id === position).length !== 0;
+
+    if (isTodo) {
+      const newTodos = todos.filter((todo) => todo.id !== position);
+      setTodos(newTodos);
+    } else {
+      const newLaunch = launch.filter((item) => item.id !== position);
+      setLaunch(newLaunch);
+    }
   };
 
   const modify = (item) => {
     setIsEditing(true);
-    setTodo(item.label);
-    setId(item.id);
+    setIsTodo(todos.filter((todo) => todo.id === item.id).length !== 0);
+    if (isTodo) {
+      setTodo(item.label);
+      setId(item.id);
+    } else {
+      setTodo(item.label);
+      setId(item.id);
+    }
   };
 
   const modifyTodo = (e) => {
     e.preventDefault();
-    const newTodos = todos.map((item) =>
-      item.id === id ? { id, label: todo } : item
-    );
-    setTodos(newTodos);
+    if (isTodo) {
+      const newTodos = todos.map((item) =>
+        item.id === id ? { id, label: todo } : item
+      );
+      setTodos(newTodos);
+    } else {
+      const newLaunch = launch.map((item) =>
+        item.id === id ? { id, label: todo } : item
+      );
+      setLaunch(newLaunch);
+    }
     setIsEditing(false);
     setTodo("");
   };
@@ -67,6 +88,17 @@ function App() {
       const launchColumn = Array.from(launch);
       launchColumn.splice(destination.index, 0, reorderedSourceColumn);
       setLaunch(launchColumn);
+    } else if (source.droppableId === "launch") {
+      const originArray = source.droppableId;
+      const destinationArray = destination.droppableId;
+
+      const sourceColumn = Array.from(launch);
+      const [reorderedSourceColumn] = sourceColumn.splice(source.index, 1);
+      setLaunch(sourceColumn);
+
+      const todosColumn = Array.from(todos);
+      todosColumn.splice(destination.index, 0, reorderedSourceColumn);
+      setTodos(todosColumn);
     }
   };
 
@@ -96,6 +128,7 @@ function App() {
       <div className="row mt-4">
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="col-4 border">
+            <h3>Todo</h3>
             <Droppable droppableId="todos">
               {(provided) => (
                 <ul
@@ -120,7 +153,9 @@ function App() {
                           </li>
                           <button
                             className="btn btn-light"
-                            onClick={() => deleteTodo(todo.id)}
+                            onClick={(e) => {
+                              deleteTodo(todo.id);
+                            }}
                             style={{ marginLeft: "auto" }}
                             type="button"
                           >
@@ -144,6 +179,7 @@ function App() {
           </div>
           {/* second column */}
           <div className="col-4 border">
+            <h3>Launch</h3>
             <Droppable droppableId="launch">
               {(provided) => (
                 <ul
@@ -168,7 +204,9 @@ function App() {
                           </li>
                           <button
                             className="btn btn-light"
-                            onClick={() => deleteTodo(todo.id)}
+                            onClick={(e) => {
+                              deleteTodo(item.id);
+                            }}
                             style={{ marginLeft: "auto" }}
                             type="button"
                           >
@@ -176,7 +214,7 @@ function App() {
                           </button>
                           <button
                             className="btn btn-light"
-                            onClick={() => modify(todo)}
+                            onClick={() => modify(item)}
                             type="button"
                           >
                             ✏️
