@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./App.css";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 function App() {
@@ -19,6 +18,9 @@ function App() {
 
   const addTodo = (e) => {
     e.preventDefault();
+    if (todo.trim() === "") {
+      return;
+    }
     const newTodo = {
       id: new Date().valueOf(),
       label: todo,
@@ -71,16 +73,25 @@ function App() {
   const onDragEnd = (result) => {
     const { destination, source } = result;
 
+    if (destination === null) {
+      return;
+    }
+
     if (destination.droppableId === source.droppableId) {
-      const items = Array.from(todos);
-      const [reorderedItem] = items.splice(source.index, 1);
-      items.splice(destination.index, 0, reorderedItem);
+      const todoItems = Array.from(todos);
+      const launchItems = Array.from(launch);
 
-      setTodos(items);
+      if (destination.droppableId === "todos") {
+        const [reorderedItem] = todoItems.splice(source.index, 1);
+        todoItems.splice(destination.index, 0, reorderedItem);
+        setTodos(todoItems);
+      }
+      if (destination.droppableId === "launch") {
+        const [reorderedItem] = launchItems.splice(source.index, 1);
+        launchItems.splice(destination.index, 0, reorderedItem);
+        setLaunch(launchItems);
+      }
     } else if (source.droppableId === "todos") {
-      const originArray = source.droppableId;
-      const destinationArray = destination.droppableId;
-
       const sourceColumn = Array.from(todos);
       const [reorderedSourceColumn] = sourceColumn.splice(source.index, 1);
       setTodos(sourceColumn);
@@ -89,9 +100,6 @@ function App() {
       launchColumn.splice(destination.index, 0, reorderedSourceColumn);
       setLaunch(launchColumn);
     } else if (source.droppableId === "launch") {
-      const originArray = source.droppableId;
-      const destinationArray = destination.droppableId;
-
       const sourceColumn = Array.from(launch);
       const [reorderedSourceColumn] = sourceColumn.splice(source.index, 1);
       setLaunch(sourceColumn);
@@ -104,7 +112,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Todo App</h1>
+      <h2>To-do App</h2>
       <div className="row">
         <div className="col-auto ">
           <form
@@ -112,10 +120,11 @@ function App() {
             onSubmit={(e) => (isEditing ? modifyTodo(e) : addTodo(e))}
           >
             <input
-              className="form-control "
+              className="form-control me-2"
               value={todo}
               onChange={(e) => setTodo(e.target.value)}
               type="text"
+              placeholder="Add a new todo"
             />
             <input
               className={isEditing ? "btn btn-secondary" : "btn btn-primary"}
@@ -127,8 +136,8 @@ function App() {
       </div>
       <div className="row mt-4">
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="col-4 border">
-            <h3>Todo</h3>
+          <div className="col-5 border">
+            <h4 style={{ marginLeft: "2rem" }}>Todo</h4>
             <Droppable droppableId="todos">
               {(provided) => (
                 <ul
@@ -177,9 +186,10 @@ function App() {
               )}
             </Droppable>
           </div>
+          <div className="col-2" />
           {/* second column */}
-          <div className="col-4 border">
-            <h3>Launch</h3>
+          <div className="col-5 border">
+            <h4 style={{ marginLeft: "2rem" }}>In Progress</h4>
             <Droppable droppableId="launch">
               {(provided) => (
                 <ul
